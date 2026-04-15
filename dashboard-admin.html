@@ -50,7 +50,7 @@
       </button>
     </nav>
     <div class="sidebar-footer">
-      <button class="btn-logout" onclick="logout()">🚪 로그아웃</button>
+      <button class="btn-logout" type="button" data-logout>🚪 로그아웃</button>
     </div>
   </aside>
 
@@ -274,13 +274,11 @@
   let currentSettlementTab = 'pending';
 
   async function init() {
-    currentUser = requireLogin(['admin']);
-    if (!currentUser) return;
-    document.getElementById('sidebar-name').textContent = currentUser.name;
+  document.getElementById('sidebar-name').textContent = '최고관리자';
 
-    await Promise.all([loadUsers(), loadItems(), loadReferrals(), loadRequests()]);
-    renderDashboard();
-  }
+  await Promise.all([loadUsers(), loadItems(), loadReferrals(), loadRequests()]);
+  renderDashboard();
+}
 
   async function loadUsers() {
     allUsers = await getAllRows('users');
@@ -694,6 +692,5 @@
   init();
 </script>
   <script type="module" src="./js/auth-guard.js"></script>
-  <button data-logout>로그아웃</button>
 </body>
 </html>
