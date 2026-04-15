@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>아이템 탐색 — 소개만</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/common.css">
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- 사이드바 -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">소개만<span>.</span></div>
+      <div class="role-badge" id="sidebar-role-badge">커넥터</div>
+    </div>
+    <div class="sidebar-user">
+      <div class="user-name" id="sidebar-name">로딩 중...</div>
+      <div class="user-company" id="sidebar-company"></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">메인</div>
+      <a href="dashboard-connector.html" class="nav-item" id="nav-dash">
+        <span class="nav-icon">🏠</span> 대시보드
+      </a>
+      <a href="marketplace.html" class="nav-item active">
+        <span class="nav-icon">🛍️</span> 아이템 탐색
+      </a>
+      <div class="nav-section-label">소개 관리</div>
+      <a href="dashboard-connector.html" class="nav-item">
+        <span class="nav-icon">📋</span> 내 소개 현황
+      </a>
+      <div class="nav-section-label">기타</div>
+      <a href="item-request.html" class="nav-item">
+        <span class="nav-icon">🙋</span> 아이템 신청하기
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" onclick="logout()">🚪 로그아웃</button>
+    </div>
+  </aside>
+
+  <!-- 메인 -->
+  <main class="main-content">
+    <header class="page-header">
+      <h1>아이템 탐색</h1>
+      <div class="header-actions">
+        <a href="item-request.html" class="btn btn-outline">원하는 아이템 신청 🙋</a>
+      </div>
+    </header>
+
+    <div class="page-body">
+
+      <!-- 안내 박스 -->
+      <div class="alert alert-info mb-16">
+        💡 <div>
+          고객 또는 지인의 어려움을 해결해줄 수 있는 공급사 아이템을 탐색하세요.
+          아이템을 선택하고 <strong>소개 요청 등록</strong>을 클릭하면 됩니다.
+          <strong>고객의 연락 동의는 반드시 먼저 받아주세요.</strong>
+        </div>
+      </div>
+
+      <!-- 필터 -->
+      <div class="filter-bar">
+        <div class="search-input-wrap" style="flex:2;">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="아이템명, 공급사, 페인포인트 검색" id="item-search" oninput="filterItems()">
+        </div>
+        <select class="form-input" style="width:160px;" id="category-filter" onchange="filterItems()">
+          <option value="">전체 카테고리</option>
+          <option value="영업솔루션">영업솔루션</option>
+          <option value="마케팅">마케팅</option>
+          <option value="IT·소프트웨어">IT·소프트웨어</option>
+          <option value="HR·노무">HR·노무</option>
+          <option value="경영컨설팅">경영컨설팅</option>
+          <option value="교육·훈련">교육·훈련</option>
+          <option value="재무·세무">재무·세무</option>
+          <option value="기업복지">기업복지</option>
+          <option value="법률·사무">법률·사무</option>
+          <option value="기타">기타</option>
+        </select>
+        <select class="form-input" style="width:140px;" id="sort-filter" onchange="filterItems()">
+          <option value="latest">최신순</option>
+          <option value="reward_desc">보상 높은 순</option>
+          <option value="views">조회수 순</option>
+        </select>
+      </div>
+
+      <!-- 결과 카운트 -->
+      <div style="font-size:13px;color:#6B7280;margin-bottom:16px;">
+        총 <strong id="result-count" style="color:#4F46E5;">0</strong>개의 아이템
+      </div>
+
+      <!-- 아이템 그리드 -->
+      <div class="item-grid" id="item-grid">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ── 아이템 상세 모달 ── -->
+<div class="modal-overlay" id="modal-item-detail">
+  <div class="modal modal-xl">
+    <div class="modal-header">
+      <h3 id="detail-modal-title">아이템 상세</h3>
+      <button class="modal-close" onclick="closeModal('modal-item-detail')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 320px;gap:24px;" id="detail-grid">
+        <!-- 좌측 -->
+        <div>
+          <div id="detail-category" style="margin-bottom:12px;"></div>
+          <h2 id="detail-title" style="font-size:20px;font-weight:800;margin-bottom:8px;"></h2>
+          <div id="detail-company" style="color:#6B7280;font-size:13px;margin-bottom:16px;"></div>
+
+          <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+            <div style="background:#F5F3FF;border-radius:8px;padding:10px 16px;font-size:13px;">
+              <div style="color:#6B7280;margin-bottom:2px;">타겟 고객</div>
+              <strong id="detail-target"></strong>
+            </div>
+            <div style="background:#FFFBEB;border-radius:8px;padding:10px 16px;font-size:13px;">
+              <div style="color:#6B7280;margin-bottom:2px;">해결하는 문제</div>
+              <strong id="detail-pain"></strong>
+            </div>
+          </div>
+
+          <div style="background:#F9FAFB;border-radius:12px;padding:20px;font-size:14px;line-height:1.7;" id="detail-desc"></div>
+
+          <div id="detail-tags" style="margin-top:16px;" class="tags"></div>
+        </div>
+
+        <!-- 우측 -->
+        <div>
+          <div style="background:#F5F3FF;border-radius:12px;padding:20px;margin-bottom:16px;">
+            <div style="font-size:13px;color:#6B7280;margin-bottom:4px;">파트너 보상</div>
+            <div id="detail-reward" style="font-size:22px;font-weight:800;color:#4F46E5;"></div>
+            <div style="font-size:12px;color:#9CA3AF;margin-top:4px;">계약 성사 시 반월 정산 지급</div>
+          </div>
+
+          <div style="background:#ECFDF5;border-radius:12px;padding:20px;margin-bottom:16px;">
+            <div style="font-size:13px;color:#6B7280;margin-bottom:4px;">평균 계약금액</div>
+            <div id="detail-contract-avg" style="font-size:18px;font-weight:700;color:#065F46;"></div>
+          </div>
+
+          <div style="background:#F9FAFB;border-radius:12px;padding:16px;font-size:13px;margin-bottom:16px;">
+            <div style="font-weight:700;margin-bottom:8px;">공급사 연락처</div>
+            <div id="detail-contact"></div>
+          </div>
+
+          <button class="btn btn-primary btn-full" id="btn-request-referral" onclick="goToReferral()" style="padding:14px;">
+            ✉️ 이 아이템으로 소개 요청 등록
+          </button>
+          <div style="font-size:11px;color:#9CA3AF;text-align:center;margin-top:8px;">
+            고객의 연락 동의 후 등록해주세요
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/auth.js"></script>
+<script>
+  let currentUser = null;
+  let allItems = [];
+  let selectedItemId = null;
+
+  async function init() {
+    currentUser = requireLogin(['connector', 'admin', 'supplier']);
+    if (!currentUser) return;
+
+    document.getElementById('sidebar-name').textContent = currentUser.name;
+    document.getElementById('sidebar-company').textContent = currentUser.company || currentUser.job_title || '';
+    document.getElementById('sidebar-role-badge').textContent =
+      currentUser.role === 'admin' ? '⚙️ 관리자' :
+      currentUser.role === 'supplier' ? '🏢 공급사' : '🤝 커넥터';
+
+    if (currentUser.role === 'admin') {
+      document.getElementById('nav-dash').href = 'dashboard-admin.html';
+    } else if (currentUser.role === 'supplier') {
+      document.getElementById('nav-dash').href = 'dashboard-supplier.html';
+    }
+
+    await loadItems();
+    renderItems(allItems);
+  }
+
+  async function loadItems() {
+    const data = await getAllRows('items', { status: 'active' });
+    // active 필터
+    allItems = data.filter ? data.filter(i => i.status === 'active') : data;
+    if (!Array.isArray(allItems)) allItems = [];
+  }
+
+  function renderItems(list) {
+    document.getElementById('result-count').textContent = list.length;
+    const grid = document.getElementById('item-grid');
+
+    if (list.length === 0) {
+      grid.innerHTML = `
+        <div class="empty-state" style="grid-column:1/-1;">
+          <div class="empty-icon">📦</div>
+          <p>검색 결과가 없습니다</p>
+          <button class="btn btn-primary" onclick="document.getElementById('item-search').value='';filterItems()">전체 보기</button>
+        </div>
+      `;
+      return;
+    }
+
+    grid.innerHTML = list.map(item => `
+      <div class="item-card" onclick="showItemDetail('${item.id}')">
+        <div class="item-card-category">${item.category || '기타'}</div>
+        <div class="item-card-title">${item.title}</div>
+        <div class="item-card-company">🏢 ${item.supplier_name || '-'}</div>
+
+        ${item.pain_point ? `
+        <div style="background:#FFF7ED;border-radius:6px;padding:8px 10px;font-size:12px;color:#92400E;margin-bottom:10px;">
+          💡 ${item.pain_point}
+        </div>` : ''}
+
+        <div class="item-card-desc">${item.description ? item.description.replace(/[#*\n]/g, ' ').trim() : '-'}</div>
+
+        ${item.tags && item.tags.length > 0 ? `
+        <div class="tags" style="margin-bottom:12px;">
+          ${item.tags.slice(0, 3).map(t => `<span class="tag">${t}</span>`).join('')}
+        </div>` : ''}
+
+        <div class="item-card-footer">
+          <div>
+            <div class="reward-badge">
+              💰 ${item.reward_amount > 0 ? Number(item.reward_amount).toLocaleString() + '원' : item.reward_rate + '% 보상'}
+            </div>
+          </div>
+          <div style="font-size:12px;color:#9CA3AF;">
+            👁 ${(item.view_count || 0).toLocaleString()}
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function filterItems() {
+    const q = document.getElementById('item-search').value.toLowerCase();
+    const cat = document.getElementById('category-filter').value;
+    const sort = document.getElementById('sort-filter').value;
+
+    let filtered = allItems.filter(i => {
+      const matchQ = !q ||
+        (i.title || '').toLowerCase().includes(q) ||
+        (i.supplier_name || '').toLowerCase().includes(q) ||
+        (i.pain_point || '').toLowerCase().includes(q) ||
+        (i.description || '').toLowerCase().includes(q) ||
+        (i.target_customer || '').toLowerCase().includes(q);
+      const matchCat = !cat || i.category === cat;
+      return matchQ && matchCat;
+    });
+
+    if (sort === 'latest') {
+      filtered.sort((a, b) => b.created_at - a.created_at);
+    } else if (sort === 'reward_desc') {
+      filtered.sort((a, b) => {
+        const ra = a.reward_amount > 0 ? a.reward_amount : a.reward_rate * 10000;
+        const rb = b.reward_amount > 0 ? b.reward_amount : b.reward_rate * 10000;
+        return rb - ra;
+      });
+    } else if (sort === 'views') {
+      filtered.sort((a, b) => (b.view_count || 0) - (a.view_count || 0));
+    }
+
+    renderItems(filtered);
+  }
+
+  async function showItemDetail(id) {
+    const item = allItems.find(i => i.id === id);
+    if (!item) return;
+
+    selectedItemId = id;
+
+    // 조회수 증가 (비동기, 결과 무시)
+    apiPatch('items', id, { view_count: (item.view_count || 0) + 1 }).catch(() => {});
+    item.view_count = (item.view_count || 0) + 1;
+
+    document.getElementById('detail-modal-title').textContent = item.category + ' 아이템';
+    document.getElementById('detail-category').innerHTML = `<span class="badge badge-blue">${item.category || '기타'}</span>`;
+    document.getElementById('detail-title').textContent = item.title;
+    document.getElementById('detail-company').textContent = '공급사: ' + (item.supplier_name || '-');
+    document.getElementById('detail-target').textContent = item.target_customer || '-';
+    document.getElementById('detail-pain').textContent = item.pain_point || '-';
+    document.getElementById('detail-desc').innerHTML = (item.description || '-').replace(/\n/g, '<br>');
+    document.getElementById('detail-reward').textContent =
+      item.reward_amount > 0 ? `${Number(item.reward_amount).toLocaleString()}원 (정액)` : `계약금액의 ${item.reward_rate}%`;
+    document.getElementById('detail-contract-avg').textContent = item.contract_avg || '협의';
+    document.getElementById('detail-contact').innerHTML =
+      `담당자: ${item.contact_person || '-'}<br>연락처: ${item.contact_phone || '-'}`;
+
+    const tagsEl = document.getElementById('detail-tags');
+    if (item.tags && item.tags.length > 0) {
+      tagsEl.innerHTML = item.tags.map(t => `<span class="tag">${t}</span>`).join('');
+    } else {
+      tagsEl.innerHTML = '';
+    }
+
+    // 커넥터가 아니면 소개 버튼 숨김
+    const btn = document.getElementById('btn-request-referral');
+    btn.style.display = currentUser.role === 'connector' ? 'flex' : 'none';
+
+    openModal('modal-item-detail');
+  }
+
+  function goToReferral() {
+    if (!selectedItemId) return;
+    closeModal('modal-item-detail');
+    // 커넥터 대시보드로 이동, 모달 열기 트리거를 위해 sessionStorage 사용
+    sessionStorage.setItem('openReferralItemId', selectedItemId);
+    window.location.href = 'dashboard-connector.html?newReferral=1';
+  }
+
+  init();
+</script>
+</body>
+</html>

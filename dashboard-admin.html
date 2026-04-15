@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>관리자 대시보드 — 소개만</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/common.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- 사이드바 -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">소개만<span>.</span></div>
+      <div class="role-badge">🔑 최고관리자</div>
+    </div>
+    <div class="sidebar-user">
+      <div class="user-name" id="sidebar-name"></div>
+      <div class="user-company" style="color:#9CA3AF;font-size:12px;">와이에이치솔루션</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">개요</div>
+      <button class="nav-item active" onclick="showTab('dashboard')">
+        <span class="nav-icon">🏠</span> 대시보드
+      </button>
+      <div class="nav-section-label">회원 관리</div>
+      <button class="nav-item" onclick="showTab('connectors')">
+        <span class="nav-icon">🤝</span> 커넥터 관리
+      </button>
+      <button class="nav-item" onclick="showTab('suppliers')">
+        <span class="nav-icon">🏢</span> 공급사 관리
+      </button>
+      <div class="nav-section-label">플랫폼 운영</div>
+      <button class="nav-item" onclick="showTab('items')">
+        <span class="nav-icon">📦</span> 아이템 관리
+      </button>
+      <button class="nav-item" onclick="showTab('referrals')">
+        <span class="nav-icon">📋</span> 소개 요청 전체
+      </button>
+      <button class="nav-item" onclick="showTab('settlements')">
+        <span class="nav-icon">💰</span> 보상 정산 관리
+      </button>
+      <button class="nav-item" onclick="showTab('item-requests')">
+        <span class="nav-icon">🙋</span> 아이템 신청 현황
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" onclick="logout()">🚪 로그아웃</button>
+    </div>
+  </aside>
+
+  <!-- 메인 -->
+  <main class="main-content">
+    <header class="page-header">
+      <h1 id="page-title">대시보드</h1>
+      <div class="header-actions">
+        <span style="font-size:12px;color:#9CA3AF;">와이에이치솔루션 운영 플랫폼</span>
+      </div>
+    </header>
+
+    <div class="page-body">
+
+      <!-- ── 대시보드 ── -->
+      <div id="tab-dashboard">
+        <div class="stat-grid" id="admin-stat-grid">
+          <div class="stat-card"><div class="stat-icon purple">🤝</div><div class="stat-info"><div class="stat-label">커넥터</div><div class="stat-value" id="s-connectors">-</div></div></div>
+          <div class="stat-card"><div class="stat-icon cyan">🏢</div><div class="stat-info"><div class="stat-label">공급사</div><div class="stat-value" id="s-suppliers">-</div></div></div>
+          <div class="stat-card"><div class="stat-icon green">📦</div><div class="stat-info"><div class="stat-label">활성 아이템</div><div class="stat-value" id="s-items">-</div></div></div>
+          <div class="stat-card"><div class="stat-icon yellow">📋</div><div class="stat-info"><div class="stat-label">총 소개 요청</div><div class="stat-value" id="s-referrals">-</div></div></div>
+          <div class="stat-card"><div class="stat-icon green">✅</div><div class="stat-info"><div class="stat-label">계약 성사</div><div class="stat-value" id="s-contracted">-</div></div></div>
+          <div class="stat-card"><div class="stat-icon red">💸</div><div class="stat-info"><div class="stat-label">지급 대기 보상</div><div class="stat-value" id="s-pending-reward">-</div></div></div>
+        </div>
+
+        <!-- 차트 -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
+          <div class="card">
+            <div class="card-header"><h2>소개 현황 분포</h2></div>
+            <div class="card-body" style="height:250px;">
+              <canvas id="status-chart"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h2>카테고리별 아이템</h2></div>
+            <div class="card-body" style="height:250px;">
+              <canvas id="category-chart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- 보상 대기 건 -->
+        <div class="card">
+          <div class="card-header">
+            <h2>🚨 보상 지급 대기 건</h2>
+            <button class="btn btn-warning btn-sm" style="background:#F59E0B;color:white;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;" onclick="showTab('settlements')">정산 관리 이동</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>커넥터</th><th>아이템명</th><th>계약금액</th><th>보상금액</th><th>계약일</th><th>처리</th></tr>
+              </thead>
+              <tbody id="pending-rewards-body">
+                <tr><td colspan="6" class="text-center" style="padding:32px;color:#9CA3AF">로딩 중...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 커넥터 관리 ── -->
+      <div id="tab-connectors" style="display:none">
+        <div class="filter-bar">
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" placeholder="이름, 이메일, 회사명 검색" id="connector-search" oninput="filterUsers('connectors')">
+          </div>
+          <select class="form-input" style="width:auto;" id="connector-status-filter" onchange="filterUsers('connectors')">
+            <option value="">전체 상태</option>
+            <option value="active">활성</option>
+            <option value="suspended">정지</option>
+            <option value="pending">대기</option>
+          </select>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>이름</th><th>이메일</th><th>직업</th><th>소속</th><th>총 소개건</th><th>계약건</th><th>누적보상</th><th>상태</th><th>관리</th></tr></thead>
+              <tbody id="connectors-body"><tr><td colspan="9" class="text-center" style="padding:32px;color:#9CA3AF">로딩 중...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 공급사 관리 ── -->
+      <div id="tab-suppliers" style="display:none">
+        <div class="filter-bar">
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" placeholder="이름, 이메일, 회사명 검색" id="supplier-search" oninput="filterUsers('suppliers')">
+          </div>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>회사명</th><th>담당자</th><th>이메일</th><th>등록 아이템</th><th>소개 수신</th><th>계약건</th><th>상태</th><th>관리</th></tr></thead>
+              <tbody id="suppliers-body"><tr><td colspan="8" class="text-center" style="padding:32px;color:#9CA3AF">로딩 중...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 아이템 관리 ── -->
+      <div id="tab-items" style="display:none">
+        <div class="filter-bar">
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" placeholder="아이템명, 공급사 검색" id="item-search" oninput="filterItems()">
+          </div>
+          <select class="form-input" style="width:auto;" id="item-status-filter" onchange="filterItems()">
+            <option value="">전체 상태</option>
+            <option value="active">활성</option>
+            <option value="inactive">비활성</option>
+            <option value="pending">대기</option>
+          </select>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>아이템명</th><th>공급사</th><th>카테고리</th><th>보상</th><th>조회수</th><th>소개수</th><th>상태</th><th>관리</th></tr></thead>
+              <tbody id="items-admin-body"><tr><td colspan="8" class="text-center" style="padding:32px;color:#9CA3AF">로딩 중...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 소개 요청 전체 ── -->
+      <div id="tab-referrals" style="display:none">
+        <div class="filter-bar">
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" placeholder="고객사, 아이템, 커넥터 검색" id="ref-admin-search" oninput="filterReferralsAdmin()">
+          </div>
+          <select class="form-input" style="width:auto;" id="ref-admin-status" onchange="filterReferralsAdmin()">
+            <option value="">전체 상태</option>
+            <option value="submitted">접수됨</option>
+            <option value="contact_requested">연락 요청</option>
+            <option value="meeting_scheduled">미팅 예정</option>
+            <option value="proposal_sent">제안 발송</option>
+            <option value="contracted">계약 완료</option>
+            <option value="failed">불발</option>
+          </select>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>아이템명</th><th>커넥터</th><th>공급사</th><th>고객사</th><th>등록일</th><th>진행상태</th><th>계약금액</th><th>보상금액</th><th>보상상태</th><th>관리</th></tr></thead>
+              <tbody id="referrals-admin-body"><tr><td colspan="10" class="text-center" style="padding:32px;color:#9CA3AF">로딩 중...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 보상 정산 관리 ── -->
+      <div id="tab-settlements" style="display:none">
+        <div class="alert alert-info mb-16">
+          📅 <div>
+            <strong>정산 기준:</strong> 계약 완료 + 보상 승인된 건에 대해 매월 1일, 16일 정산 처리.
+            아래에서 개별 보상 승인 또는 정산 완료 처리를 할 수 있습니다.
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchSettlementTab('pending')">지급 대기</button>
+          <button class="tab-btn" onclick="switchSettlementTab('approved')">지급 승인</button>
+          <button class="tab-btn" onclick="switchSettlementTab('paid')">지급 완료</button>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>커넥터</th><th>아이템명</th><th>고객사</th><th>계약금액</th><th>보상금액</th><th>보상상태</th><th>계약일</th><th>처리</th></tr></thead>
+              <tbody id="settlements-body"><tr><td colspan="8" class="text-center" style="padding:32px;color:#9CA3AF">로딩 중...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 아이템 신청 현황 ── -->
+      <div id="tab-item-requests" style="display:none">
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>신청 제목</th><th>커넥터</th><th>카테고리</th><th>등록일</th><th>상태</th><th>메모</th><th>관리</th></tr></thead>
+              <tbody id="item-requests-body"><tr><td colspan="7" class="text-center" style="padding:32px;color:#9CA3AF">로딩 중...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- 보상 관리 모달 -->
+<div class="modal-overlay" id="modal-reward-manage">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>보상 처리</h3>
+      <button class="modal-close" onclick="closeModal('modal-reward-manage')">✕</button>
+    </div>
+    <div class="modal-body" id="reward-manage-body"></div>
+    <div class="modal-footer" id="reward-manage-footer"></div>
+  </div>
+</div>
+
+<!-- 아이템 신청 메모 모달 -->
+<div class="modal-overlay" id="modal-req-memo">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>신청 메모 / 상태 처리</h3>
+      <button class="modal-close" onclick="closeModal('modal-req-memo')">✕</button>
+    </div>
+    <div class="modal-body" id="req-memo-body"></div>
+    <div class="modal-footer" id="req-memo-footer"></div>
+  </div>
+</div>
+
+<script src="js/auth.js"></script>
+<script>
+  let currentUser = null;
+  let allUsers = [], allItems = [], allReferrals = [], allRequests = [];
+  let currentSettlementTab = 'pending';
+
+  async function init() {
+    currentUser = requireLogin(['admin']);
+    if (!currentUser) return;
+    document.getElementById('sidebar-name').textContent = currentUser.name;
+
+    await Promise.all([loadUsers(), loadItems(), loadReferrals(), loadRequests()]);
+    renderDashboard();
+  }
+
+  async function loadUsers() {
+    allUsers = await getAllRows('users');
+  }
+  async function loadItems() {
+    allItems = await getAllRows('items');
+  }
+  async function loadReferrals() {
+    allReferrals = await getAllRows('referrals');
+  }
+  async function loadRequests() {
+    allRequests = await getAllRows('item_requests');
+  }
+
+  function renderDashboard() {
+    const connectors = allUsers.filter(u => u.role === 'connector');
+    const suppliers = allUsers.filter(u => u.role === 'supplier');
+    const activeItems = allItems.filter(i => i.status === 'active');
+    const contracted = allReferrals.filter(r => r.status === 'contracted');
+    const pendingReward = allReferrals.filter(r => r.status === 'contracted' && r.reward_status === 'pending');
+    const pendingRewardTotal = pendingReward.reduce((s, r) => s + (Number(r.reward_amount) || 0), 0);
+
+    document.getElementById('s-connectors').textContent = connectors.length;
+    document.getElementById('s-suppliers').textContent = suppliers.length;
+    document.getElementById('s-items').textContent = activeItems.length;
+    document.getElementById('s-referrals').textContent = allReferrals.length;
+    document.getElementById('s-contracted').textContent = contracted.length;
+    document.getElementById('s-pending-reward').textContent = formatMoney(pendingRewardTotal);
+
+    // 차트 - 소개 현황
+    const statusCounts = {};
+    allReferrals.forEach(r => { statusCounts[r.status] = (statusCounts[r.status] || 0) + 1; });
+    const statusLabels = Object.keys(statusCounts).map(k => STATUS_LABEL[k] || k);
+    const statusValues = Object.values(statusCounts);
+
+    setTimeout(() => {
+      try {
+        new Chart(document.getElementById('status-chart'), {
+          type: 'doughnut',
+          data: {
+            labels: statusLabels,
+            datasets: [{ data: statusValues, backgroundColor: ['#4F46E5','#06B6D4','#F59E0B','#F97316','#10B981','#EF4444'] }]
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+        });
+
+        // 카테고리 차트
+        const catCounts = {};
+        allItems.forEach(i => { catCounts[i.category || '기타'] = (catCounts[i.category || '기타'] || 0) + 1; });
+        new Chart(document.getElementById('category-chart'), {
+          type: 'bar',
+          data: {
+            labels: Object.keys(catCounts),
+            datasets: [{ label: '아이템 수', data: Object.values(catCounts), backgroundColor: '#4F46E5', borderRadius: 6 }]
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { stepSize: 1 } } } }
+        });
+      } catch (e) {}
+    }, 100);
+
+    // 보상 대기 테이블
+    const tbody = document.getElementById('pending-rewards-body');
+    if (pendingReward.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-gray" style="padding:24px;">지급 대기 보상이 없습니다 ✅</td></tr>`;
+    } else {
+      tbody.innerHTML = pendingReward.slice(0, 10).map(r => `
+        <tr>
+          <td>${r.connector_name || '-'}</td>
+          <td>${r.item_title || '-'}</td>
+          <td>${formatMoney(r.contract_amount)}</td>
+          <td style="color:#4F46E5;font-weight:700;">${formatMoney(r.reward_amount)}</td>
+          <td>${formatDate(r.updated_at)}</td>
+          <td>
+            <button class="btn btn-success btn-sm" onclick="approveReward('${r.id}')">승인</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+  }
+
+  async function approveReward(id) {
+    await apiPatch('referrals', id, { reward_status: 'approved' });
+    showToast('보상이 승인되었습니다');
+    await loadReferrals();
+    renderDashboard();
+    if (document.getElementById('tab-settlements').style.display !== 'none') renderSettlements();
+  }
+
+  async function markPaid(id) {
+    await apiPatch('referrals', id, { reward_status: 'paid' });
+    showToast('지급 완료 처리되었습니다');
+    await loadReferrals();
+    renderSettlements();
+    renderDashboard();
+  }
+
+  function renderConnectors() {
+    const connectors = allUsers.filter(u => u.role === 'connector');
+    const tbody = document.getElementById('connectors-body');
+    if (connectors.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><p>커넥터가 없습니다</p></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = connectors.map(u => {
+      const userRefs = allReferrals.filter(r => r.connector_id === u.id);
+      const contracted = userRefs.filter(r => r.status === 'contracted').length;
+      const paidReward = userRefs.filter(r => r.reward_status === 'paid').reduce((s, r) => s + (Number(r.reward_amount) || 0), 0);
+      return `<tr>
+        <td><strong>${u.name}</strong></td>
+        <td style="font-size:12px;">${u.email}</td>
+        <td>${u.job_title || '-'}</td>
+        <td>${u.company || '-'}</td>
+        <td>${userRefs.length}</td>
+        <td>${contracted}</td>
+        <td style="color:#4F46E5;font-weight:700;">${formatMoney(paidReward)}</td>
+        <td>${statusBadge(u.status)}</td>
+        <td>
+          <button class="btn btn-sm ${u.status === 'active' ? 'btn-danger' : 'btn-success'}"
+            onclick="toggleUserStatus('${u.id}', '${u.status}')">
+            ${u.status === 'active' ? '정지' : '활성화'}
+          </button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderSuppliers() {
+    const suppliers = allUsers.filter(u => u.role === 'supplier');
+    const tbody = document.getElementById('suppliers-body');
+    if (suppliers.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><p>공급사가 없습니다</p></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = suppliers.map(u => {
+      const userItems = allItems.filter(i => i.supplier_id === u.id);
+      const userLeads = allReferrals.filter(r => r.supplier_id === u.id);
+      const contracted = userLeads.filter(r => r.status === 'contracted').length;
+      return `<tr>
+        <td><strong>${u.company || u.name}</strong></td>
+        <td>${u.name}</td>
+        <td style="font-size:12px;">${u.email}</td>
+        <td>${userItems.length}</td>
+        <td>${userLeads.length}</td>
+        <td>${contracted}</td>
+        <td>${statusBadge(u.status)}</td>
+        <td>
+          <button class="btn btn-sm ${u.status === 'active' ? 'btn-danger' : 'btn-success'}"
+            onclick="toggleUserStatus('${u.id}', '${u.status}')">
+            ${u.status === 'active' ? '정지' : '활성화'}
+          </button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderItemsAdmin(filtered) {
+    const list = filtered || allItems;
+    const tbody = document.getElementById('items-admin-body');
+    if (list.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><p>아이템이 없습니다</p></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = list.map(item => {
+      const leads = allReferrals.filter(r => r.item_id === item.id);
+      return `<tr>
+        <td><strong>${item.title}</strong></td>
+        <td>${item.supplier_name || '-'}</td>
+        <td><span class="badge badge-blue">${item.category || '-'}</span></td>
+        <td>${item.reward_amount > 0 ? formatMoney(item.reward_amount) : (item.reward_rate || 0) + '%'}</td>
+        <td>${(item.view_count || 0).toLocaleString()}</td>
+        <td>${leads.length}</td>
+        <td>${statusBadge(item.status)}</td>
+        <td>
+          <button class="btn btn-sm ${item.status === 'active' ? 'btn-danger' : 'btn-success'}"
+            onclick="toggleItemStatusAdmin('${item.id}', '${item.status}')">
+            ${item.status === 'active' ? '비활성화' : '활성화'}
+          </button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderReferralsAdmin(filtered) {
+    const list = filtered || allReferrals;
+    const sorted = [...list].sort((a, b) => b.created_at - a.created_at);
+    const tbody = document.getElementById('referrals-admin-body');
+    if (sorted.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><p>소개 요청이 없습니다</p></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = sorted.map(r => `
+      <tr>
+        <td>${r.item_title || '-'}</td>
+        <td>${r.connector_name || '-'}</td>
+        <td>${r.supplier_name || '-'}</td>
+        <td>${r.lead_company || '-'}</td>
+        <td>${formatDate(r.created_at)}</td>
+        <td>${statusBadge(r.status)}</td>
+        <td>${r.contract_amount ? formatMoney(r.contract_amount) : '-'}</td>
+        <td>${r.reward_amount ? formatMoney(r.reward_amount) : '-'}</td>
+        <td>${statusBadge(r.reward_status)}</td>
+        <td>
+          ${r.status === 'contracted' && r.reward_status === 'pending' ?
+            `<button class="btn btn-success btn-sm" onclick="approveReward('${r.id}')">보상승인</button>` :
+            r.reward_status === 'approved' ?
+            `<button class="btn btn-primary btn-sm" onclick="markPaid('${r.id}')">지급완료</button>` :
+            '-'}
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function renderSettlements() {
+    const statusFilter = currentSettlementTab;
+    let rewardStatus = statusFilter;
+    if (statusFilter === 'pending') rewardStatus = 'pending';
+    else if (statusFilter === 'approved') rewardStatus = 'approved';
+    else rewardStatus = 'paid';
+
+    const list = allReferrals.filter(r => r.status === 'contracted' && r.reward_status === rewardStatus);
+    const sorted = [...list].sort((a, b) => b.updated_at - a.updated_at);
+    const tbody = document.getElementById('settlements-body');
+
+    if (sorted.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="padding:32px;color:#9CA3AF">해당 건이 없습니다</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = sorted.map(r => `
+      <tr>
+        <td><strong>${r.connector_name || '-'}</strong></td>
+        <td>${r.item_title || '-'}</td>
+        <td>${r.lead_company || '-'}</td>
+        <td>${formatMoney(r.contract_amount)}</td>
+        <td style="color:#4F46E5;font-weight:700;">${formatMoney(r.reward_amount)}</td>
+        <td>${statusBadge(r.reward_status)}</td>
+        <td>${formatDate(r.updated_at)}</td>
+        <td>
+          ${r.reward_status === 'pending' ? `<button class="btn btn-success btn-sm" onclick="approveReward('${r.id}')">승인</button>` : ''}
+          ${r.reward_status === 'approved' ? `<button class="btn btn-primary btn-sm" onclick="markPaid('${r.id}')">지급완료</button>` : ''}
+          ${r.reward_status === 'paid' ? '<span style="color:#10B981;font-size:13px;">✅ 완료</span>' : ''}
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function renderItemRequests() {
+    const sorted = [...allRequests].sort((a, b) => b.created_at - a.created_at);
+    const tbody = document.getElementById('item-requests-body');
+    if (sorted.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><p>신청된 아이템 요청이 없습니다</p></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = sorted.map(req => `
+      <tr>
+        <td><strong>${req.title || '-'}</strong></td>
+        <td>${req.connector_name || '-'}</td>
+        <td><span class="badge badge-blue">${req.category || '-'}</span></td>
+        <td>${formatDate(req.created_at)}</td>
+        <td>${statusBadge(req.status)}</td>
+        <td style="font-size:12px;color:#6B7280;">${req.admin_memo || '-'}</td>
+        <td>
+          <button class="btn btn-outline btn-sm" onclick="openReqMemo('${req.id}')">처리</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function openReqMemo(id) {
+    const req = allRequests.find(r => r.id === id);
+    if (!req) return;
+    document.getElementById('req-memo-body').innerHTML = `
+      <div style="font-size:14px;margin-bottom:12px;"><strong>${req.title}</strong></div>
+      <div style="font-size:13px;color:#6B7280;margin-bottom:8px;">요청자: ${req.connector_name}</div>
+      <div style="background:#F9FAFB;border-radius:8px;padding:12px;font-size:13px;margin-bottom:16px;line-height:1.6;">${req.description || '-'}</div>
+      <div class="form-group">
+        <label class="form-label">상태 변경</label>
+        <select class="form-select" id="req-status-select">
+          <option value="open" ${req.status === 'open' ? 'selected' : ''}>모집중</option>
+          <option value="matched" ${req.status === 'matched' ? 'selected' : ''}>매칭됨</option>
+          <option value="closed" ${req.status === 'closed' ? 'selected' : ''}>마감</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">관리자 메모</label>
+        <textarea class="form-textarea" id="req-admin-memo" rows="3">${req.admin_memo || ''}</textarea>
+      </div>
+    `;
+    document.getElementById('req-memo-footer').innerHTML = `
+      <button class="btn btn-secondary" onclick="closeModal('modal-req-memo')">취소</button>
+      <button class="btn btn-primary" onclick="saveReqMemo('${id}')">저장</button>
+    `;
+    openModal('modal-req-memo');
+  }
+
+  async function saveReqMemo(id) {
+    const status = document.getElementById('req-status-select').value;
+    const memo = document.getElementById('req-admin-memo').value;
+    await apiPatch('item_requests', id, { status, admin_memo: memo });
+    showToast('처리되었습니다');
+    closeModal('modal-req-memo');
+    await loadRequests();
+    renderItemRequests();
+  }
+
+  function switchSettlementTab(tab) {
+    currentSettlementTab = tab;
+    document.querySelectorAll('#tab-settlements .tab-btn').forEach((btn, i) => {
+      btn.classList.toggle('active', ['pending','approved','paid'][i] === tab);
+    });
+    renderSettlements();
+  }
+
+  async function toggleUserStatus(id, current) {
+    const newStatus = current === 'active' ? 'suspended' : 'active';
+    await apiPatch('users', id, { status: newStatus });
+    showToast(`${newStatus === 'active' ? '활성화' : '정지'} 처리되었습니다`);
+    await loadUsers();
+    if (document.getElementById('tab-connectors').style.display !== 'none') renderConnectors();
+    if (document.getElementById('tab-suppliers').style.display !== 'none') renderSuppliers();
+  }
+
+  async function toggleItemStatusAdmin(id, current) {
+    const newStatus = current === 'active' ? 'inactive' : 'active';
+    await apiPatch('items', id, { status: newStatus });
+    showToast(`아이템이 ${newStatus === 'active' ? '활성화' : '비활성화'}되었습니다`);
+    await loadItems();
+    renderItemsAdmin();
+  }
+
+  function filterUsers(type) {
+    if (type === 'connectors') {
+      const q = document.getElementById('connector-search').value.toLowerCase();
+      const st = document.getElementById('connector-status-filter').value;
+      const filtered = allUsers.filter(u => {
+        if (u.role !== 'connector') return false;
+        const matchQ = !q || (u.name || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q) || (u.company || '').toLowerCase().includes(q);
+        const matchSt = !st || u.status === st;
+        return matchQ && matchSt;
+      });
+      // 임시 전체 치환
+      const savedAll = allUsers;
+      const tbody = document.getElementById('connectors-body');
+      tbody.innerHTML = filtered.map(u => {
+        const userRefs = allReferrals.filter(r => r.connector_id === u.id);
+        const contracted = userRefs.filter(r => r.status === 'contracted').length;
+        const paidReward = userRefs.filter(r => r.reward_status === 'paid').reduce((s, r) => s + (Number(r.reward_amount) || 0), 0);
+        return `<tr>
+          <td><strong>${u.name}</strong></td>
+          <td style="font-size:12px;">${u.email}</td>
+          <td>${u.job_title || '-'}</td>
+          <td>${u.company || '-'}</td>
+          <td>${userRefs.length}</td>
+          <td>${contracted}</td>
+          <td style="color:#4F46E5;font-weight:700;">${formatMoney(paidReward)}</td>
+          <td>${statusBadge(u.status)}</td>
+          <td><button class="btn btn-sm ${u.status === 'active' ? 'btn-danger' : 'btn-success'}" onclick="toggleUserStatus('${u.id}', '${u.status}')">${u.status === 'active' ? '정지' : '활성화'}</button></td>
+        </tr>`;
+      }).join('') || `<tr><td colspan="9" class="text-center text-gray" style="padding:24px;">검색 결과 없음</td></tr>`;
+    }
+  }
+
+  function filterItems() {
+    const q = document.getElementById('item-search').value.toLowerCase();
+    const st = document.getElementById('item-status-filter').value;
+    const filtered = allItems.filter(i => {
+      const matchQ = !q || (i.title || '').toLowerCase().includes(q) || (i.supplier_name || '').toLowerCase().includes(q);
+      return matchQ && (!st || i.status === st);
+    });
+    renderItemsAdmin(filtered);
+  }
+
+  function filterReferralsAdmin() {
+    const q = document.getElementById('ref-admin-search').value.toLowerCase();
+    const st = document.getElementById('ref-admin-status').value;
+    const filtered = allReferrals.filter(r => {
+      const matchQ = !q || (r.item_title || '').toLowerCase().includes(q) || (r.lead_company || '').toLowerCase().includes(q) || (r.connector_name || '').toLowerCase().includes(q);
+      return matchQ && (!st || r.status === st);
+    });
+    renderReferralsAdmin(filtered);
+  }
+
+  function showTab(tab) {
+    ['dashboard','connectors','suppliers','items','referrals','settlements','item-requests'].forEach(t => {
+      document.getElementById(`tab-${t}`).style.display = 'none';
+    });
+    document.getElementById(`tab-${tab}`).style.display = 'block';
+
+    const titles = {
+      dashboard: '관리자 대시보드',
+      connectors: '커넥터 관리',
+      suppliers: '공급사 관리',
+      items: '아이템 관리',
+      referrals: '소개 요청 전체',
+      settlements: '보상 정산 관리',
+      'item-requests': '아이템 신청 현황'
+    };
+    document.getElementById('page-title').textContent = titles[tab] || '';
+
+    // 탭 활성화
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+    if (tab === 'connectors') renderConnectors();
+    else if (tab === 'suppliers') renderSuppliers();
+    else if (tab === 'items') renderItemsAdmin();
+    else if (tab === 'referrals') renderReferralsAdmin();
+    else if (tab === 'settlements') renderSettlements();
+    else if (tab === 'item-requests') renderItemRequests();
+  }
+
+  init();
+</script>
+</body>
+</html>
