@@ -1,30 +1,26 @@
 import { supabase } from './supabase-config.js';
 
-function currentPage() {
-  const path = window.location.pathname;
-  const page = path.split('/').pop();
-  return page || 'index.html';
-}
+const PUBLIC_PAGES = new Set([
+  '',
+  'index.html',
+  'login.html'
+]);
 
-async function getProfile(userId) {
-  try {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('role, status')
-      .eq('id', userId)
-      .maybeSingle();
+const PAGE_ROLE_RULES = {
+  'dashboard-admin.html': ['super_admin', 'admin'],
+  'dashboard-connector.html': ['connector'],
+  'dashboard-supplier.html': ['supplier'],
+  'marketplace.html': ['connector'],
+  'item-request.html': ['connector']
+};
 
-    if (error) return null;
-    return data;
-  } catch (e) {
-    return null;
-  }
+function getCurrentPage() {
+  const path = window.location.pathname || '';
+  return path.split('/').pop() || 'index.html';
 }
 
 function getHomeByRole(profile) {
-  if (!profile) return '/dashboard-admin.html';
-
-  switch (profile.role) {
+  switch (profile?.role) {
     case 'super_admin':
     case 'admin':
       return '/dashboard-admin.html';
@@ -33,59 +29,111 @@ function getHomeByRole(profile) {
     case 'supplier':
       return '/dashboard-supplier.html';
     default:
-      return '/dashboard-admin.html';
+      return '/login.html';
   }
 }
 
+async function getProfile(userId) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, email, full_name, company_name, role, status')
+    .eq('id', userId)
+    .maybeSingle();
+
+  if (error) {
+    console.error('auth-guard getProfile error:', error);
+    return null;
+  }
+
+  return data;
+}
+
+async function logout() {
+  try {
+    await supabase.auth.signOut();
+  } catch (error) {
+    console.error('logout error:', error);
+  } finally {
+    window.location.href = '/login.html';
+  }
+}
+
+function bindLogoutButtons() {
+  document.querySelectorAll('[data-logout]').forEach((el) => {
+    if (el.dataset.logoutBound === 'true') return;
+
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      logout();
+    });
+
+    el.dataset.logoutBound = 'true';
+  });
+}
+
 async function guardPage() {
-  const page = currentPage();
+  const page = getCurrentPage();
 
-  const publicPages = ['index.html', 'login.html', ''];
-  if (publicPages.includes(page)) return;
+  if (PUBLIC_PAGES.has(page)) {
+    bindLogoutButtons();
+    return true;
+  }
 
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session }
+  } = await supabase.auth.getSession();
 
   if (!session) {
     window.location.href = '/login.html';
-    return;
+    return false;
   }
 
   const profile = await getProfile(session.user.id);
 
-  if (profile?.status && profile.status !== 'approved') {
-    await supabase.auth.signOut();
-    alert('관리자 승인 후 이용 가능합니다.');
-    window.location.href = '/login.html';
-    return;
+  if (!profile) {
+    alert('프로필 정보를 찾을 수 없습니다. 다시 로그인해 주세요.');
+    await logout();
+    return false;
   }
 
-  const roleRules = {
-    'dashboard-admin.html': ['super_admin', 'admin'],
-    'dashboard-connector.html': ['connector'],
-    'dashboard-supplier.html': ['supplier'],
+  if (profile.status !== 'approved') {
+    alert('관리자 승인 후 이용 가능합니다.');
+    await logout();
+    return false;
+  }
+
+  const allowedRoles = PAGE_ROLE_RULES[page];
+
+  if (allowedRoles && !allowedRoles.includes(profile.role)) {
+    window.location.href = getHomeByRole(profile);
+    return false;
+  }
+
+  window.appAuth = {
+    session,
+    user: session.user,
+    profile
   };
 
-  const allowedRoles = roleRules[page];
+  bindLogoutButtons();
 
-  // profiles 테이블이 아직 없거나 역할 데이터가 없으면 1차 테스트를 위해 통과
-  if (!allowedRoles || !profile?.role) return;
+  window.dispatchEvent(
+    new CustomEvent('app-auth-ready', {
+      detail: window.appAuth
+    })
+  );
 
-  if (!allowedRoles.includes(profile.role)) {
-    window.location.href = getHomeByRole(profile);
-  }
-}
-
-async function logout() {
-  await supabase.auth.signOut();
-  window.location.href = '/login.html';
+  return true;
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  await guardPage();
-
-  document.querySelectorAll('[data-logout]').forEach((el) => {
-    el.addEventListener('click', logout);
-  });
+  try {
+    await guardPage();
+  } catch (error) {
+    console.error('auth-guard fatal error:', error);
+    alert('인증 확인 중 오류가 발생했습니다. 다시 로그인해 주세요.');
+    window.location.href = '/login.html';
+  }
 });
 
 window.handleLogout = logout;

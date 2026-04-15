@@ -331,7 +331,7 @@
     <h1>다시 오셨군요! 👋</h1>
     <p class="sub-text">이메일과 비밀번호로 로그인하세요</p>
 
-    <form id="login-form">
+    <form id="loginForm">
       <div class="form-group">
         <label class="form-label" for="email">이메일</label>
         <input
@@ -358,7 +358,7 @@
 
       <div class="error-msg" id="login-error" style="font-size:13px;margin-bottom:8px;"></div>
 
-      <button type="submit" class="btn-login-submit" id="login-btn">
+      <button type="submit" class="btn-login-submit" id="loginBtn">
         <span id="btn-text">로그인</span>
       </button>
     </form>
@@ -406,59 +406,25 @@
   </div>
 </div>
 
-<script src="js/auth.js"></script>
 <script>
-  // 이미 로그인된 경우
-  (function() {
-    const user = Session.get();
-    if (user) redirectByRole(user.role);
-  })();
-
   function fillAccount(email, pw) {
     document.getElementById('email').value = email;
     document.getElementById('password').value = pw;
+
+    const emailError = document.getElementById('email-error');
+    const passwordError = document.getElementById('password-error');
+    const loginError = document.getElementById('login-error');
+
+    if (emailError) emailError.textContent = '';
+    if (passwordError) passwordError.textContent = '';
+    if (loginError) loginError.textContent = '';
+
     document.getElementById('email').classList.remove('error');
-    document.getElementById('login-error').textContent = '';
+    document.getElementById('password').classList.remove('error');
   }
-
-  document.getElementById('login-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value.trim();
-    const btn = document.getElementById('login-btn');
-    const btnText = document.getElementById('btn-text');
-    const errEl = document.getElementById('login-error');
-
-    // 초기화
-    errEl.textContent = '';
-    document.getElementById('email').classList.remove('error');
-
-    if (!email) {
-      document.getElementById('email-error').textContent = '이메일을 입력하세요';
-      return;
-    }
-    if (!password) {
-      document.getElementById('password-error').textContent = '비밀번호를 입력하세요';
-      return;
-    }
-
-    btn.disabled = true;
-    btnText.textContent = '로그인 중...';
-
-    const result = await login(email, password);
-
-    if (result.success) {
-      btnText.textContent = '✅ 로그인 성공!';
-      setTimeout(() => redirectByRole(result.user.role), 500);
-    } else {
-      errEl.textContent = result.message;
-      document.getElementById('email').classList.add('error');
-      btn.disabled = false;
-      btnText.textContent = '로그인';
-    }
-  });
 </script>
+<script type="module" src="./js/login.js"></script>
+
   <script type="module" src="./js/login.js"></script>
 </body>
 </html>

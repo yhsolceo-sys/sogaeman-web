@@ -1,306 +1,4 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>공급사 대시보드 — 소개만</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/common.css">
-</head>
-<body>
-
-<div class="layout">
-
-  <!-- 사이드바 -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-mark">소개만<span>.</span></div>
-      <div class="role-badge">🏢 공급사</div>
-    </div>
-    <div class="sidebar-user">
-      <div class="user-name" id="sidebar-name">로딩 중...</div>
-      <div class="user-company" id="sidebar-company"></div>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section-label">메인</div>
-      <button class="nav-item active" onclick="showTab('dashboard')">
-        <span class="nav-icon">🏠</span> 대시보드
-      </button>
-      <div class="nav-section-label">아이템 관리</div>
-      <button class="nav-item" onclick="showTab('my-items')">
-        <span class="nav-icon">📦</span> 내 아이템 목록
-      </button>
-      <button class="nav-item" onclick="openItemModal(null)">
-        <span class="nav-icon">➕</span> 아이템 등록
-      </button>
-      <div class="nav-section-label">소개 리드 관리</div>
-      <button class="nav-item" onclick="showTab('leads')">
-        <span class="nav-icon">📋</span> 소개 리드 현황
-      </button>
-      <div class="nav-section-label">커넥터 신청</div>
-      <a href="item-request.html" class="nav-item">
-        <span class="nav-icon">🙋</span> 아이템 신청 게시판
-      </a>
-    </nav>
-    <div class="sidebar-footer">
-      <button class="btn-logout" onclick="logout()">🚪 로그아웃</button>
-    </div>
-  </aside>
-
-  <!-- 메인 -->
-  <main class="main-content">
-    <header class="page-header">
-      <h1 id="page-title">대시보드</h1>
-      <div class="header-actions">
-        <button class="btn btn-primary" onclick="openItemModal(null)">+ 아이템 등록</button>
-      </div>
-    </header>
-
-    <div class="page-body">
-
-      <!-- ── 대시보드 ── -->
-      <div id="tab-dashboard">
-        <div class="stat-grid">
-          <div class="stat-card">
-            <div class="stat-icon purple">📦</div>
-            <div class="stat-info">
-              <div class="stat-label">등록 아이템</div>
-              <div class="stat-value" id="stat-items">-</div>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon cyan">📋</div>
-            <div class="stat-info">
-              <div class="stat-label">소개 리드 수신</div>
-              <div class="stat-value" id="stat-leads">-</div>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon green">✅</div>
-            <div class="stat-info">
-              <div class="stat-label">계약 완료</div>
-              <div class="stat-value" id="stat-contracted">-</div>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon yellow">💰</div>
-            <div class="stat-info">
-              <div class="stat-label">총 계약금액</div>
-              <div class="stat-value" id="stat-revenue">-</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 새 리드 알림 -->
-        <div id="new-leads-banner" style="display:none;" class="alert alert-info mb-16">
-          🔔 <div id="new-leads-text"></div>
-        </div>
-
-        <!-- 최근 리드 -->
-        <div class="card">
-          <div class="card-header">
-            <h2>최근 수신된 소개 리드</h2>
-            <button class="btn btn-outline btn-sm" onclick="showTab('leads')">전체 보기</button>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>아이템명</th>
-                  <th>고객사</th>
-                  <th>소개한 커넥터</th>
-                  <th>수신일</th>
-                  <th>진행상태</th>
-                  <th>관리</th>
-                </tr>
-              </thead>
-              <tbody id="recent-leads-body">
-                <tr><td colspan="6" class="text-center" style="padding:32px;color:#9CA3AF">로딩 중...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── 아이템 목록 ── -->
-      <div id="tab-my-items" style="display:none">
-        <div class="card">
-          <div class="card-header">
-            <h2>내 아이템 목록</h2>
-            <button class="btn btn-primary btn-sm" onclick="openItemModal(null)">+ 아이템 등록</button>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>아이템명</th>
-                  <th>카테고리</th>
-                  <th>보상</th>
-                  <th>평균계약금액</th>
-                  <th>상태</th>
-                  <th>조회수</th>
-                  <th>관리</th>
-                </tr>
-              </thead>
-              <tbody id="items-body">
-                <tr><td colspan="7" class="text-center" style="padding:32px;color:#9CA3AF">로딩 중...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── 소개 리드 현황 ── -->
-      <div id="tab-leads" style="display:none">
-        <div class="filter-bar">
-          <div class="search-input-wrap">
-            <span class="search-icon">🔍</span>
-            <input type="text" placeholder="고객사명, 아이템명으로 검색" id="lead-search" oninput="filterLeads()">
-          </div>
-          <select class="form-input" style="width:auto;" id="lead-status-filter" onchange="filterLeads()">
-            <option value="">전체 상태</option>
-            <option value="submitted">접수됨</option>
-            <option value="contact_requested">연락 요청</option>
-            <option value="meeting_scheduled">미팅 예정</option>
-            <option value="proposal_sent">제안 발송</option>
-            <option value="contracted">계약 완료</option>
-            <option value="failed">불발</option>
-          </select>
-        </div>
-        <div class="card">
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>아이템명</th>
-                  <th>고객사</th>
-                  <th>담당자</th>
-                  <th>연락처</th>
-                  <th>소개 커넥터</th>
-                  <th>수신일</th>
-                  <th>진행상태</th>
-                  <th>계약금액</th>
-                  <th>관리</th>
-                </tr>
-              </thead>
-              <tbody id="all-leads-body">
-                <tr><td colspan="9" class="text-center" style="padding:32px;color:#9CA3AF">로딩 중...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </main>
-</div>
-
-<!-- ── 아이템 등록/수정 모달 ── -->
-<div class="modal-overlay" id="modal-item">
-  <div class="modal modal-xl">
-    <div class="modal-header">
-      <h3 id="item-modal-title">📦 아이템 등록</h3>
-      <button class="modal-close" onclick="closeModal('modal-item')">✕</button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="edit-item-id">
-      <div class="form-row">
-        <div class="form-group" style="grid-column:1/-1">
-          <label class="form-label">아이템 제목 <span class="required">*</span></label>
-          <input type="text" class="form-input" id="item-title" placeholder="예: B2B 영업 컨설팅 서비스 (3개월 신규 거래처 10건 보장)">
-        </div>
-        <div class="form-group">
-          <label class="form-label">카테고리 <span class="required">*</span></label>
-          <select class="form-select" id="item-category">
-            <option value="">선택</option>
-            <option value="영업솔루션">영업솔루션</option>
-            <option value="마케팅">마케팅</option>
-            <option value="IT·소프트웨어">IT·소프트웨어</option>
-            <option value="HR·노무">HR·노무</option>
-            <option value="경영컨설팅">경영컨설팅</option>
-            <option value="교육·훈련">교육·훈련</option>
-            <option value="재무·세무">재무·세무</option>
-            <option value="기업복지">기업복지</option>
-            <option value="법률·사무">법률·사무</option>
-            <option value="기타">기타</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">평균 계약금액</label>
-          <input type="text" class="form-input" id="item-contract-avg" placeholder="예: 500만~2,000만원">
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">타겟 고객 설명 <span class="required">*</span></label>
-        <input type="text" class="form-input" id="item-target" placeholder="예: 연 매출 5억~50억 중소기업, 영업인력이 없는 스타트업">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">해결하는 페인포인트 <span class="required">*</span></label>
-        <input type="text" class="form-input" id="item-pain" placeholder="예: 신규거래처 개발 어려움, 매출 정체">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">아이템 상세 설명 <span class="required">*</span></label>
-        <textarea class="form-textarea" id="item-desc" rows="5" placeholder="서비스의 핵심 내용, 제공 항목, 성과 보장 내용 등을 상세히 작성해주세요. 커넥터가 고객에게 소개할 때 참고하는 내용입니다."></textarea>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">파트너 보상 방식 <span class="required">*</span></label>
-          <select class="form-select" id="item-reward-type" onchange="toggleRewardType()">
-            <option value="rate">계약금액의 %</option>
-            <option value="amount">정액 (고정금액)</option>
-          </select>
-        </div>
-        <div class="form-group" id="reward-rate-group">
-          <label class="form-label">보상률 (%) <span class="required">*</span></label>
-          <input type="number" class="form-input" id="item-reward-rate" placeholder="예: 10" min="1" max="50">
-        </div>
-        <div class="form-group" id="reward-amount-group" style="display:none">
-          <label class="form-label">고정 보상금액 (원) <span class="required">*</span></label>
-          <input type="number" class="form-input" id="item-reward-amount" placeholder="예: 300000">
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">담당자 이름</label>
-          <input type="text" class="form-input" id="item-contact-person" placeholder="예: 홍길동">
-        </div>
-        <div class="form-group">
-          <label class="form-label">담당자 연락처</label>
-          <input type="text" class="form-input" id="item-contact-phone" placeholder="예: 010-1234-5678">
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">태그 (쉼표로 구분)</label>
-        <input type="text" class="form-input" id="item-tags" placeholder="예: 영업, B2B, 컨설팅, 매출향상">
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('modal-item')">취소</button>
-      <button class="btn btn-primary" id="save-item-btn" onclick="saveItem()">저장하기</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── 리드 상세/상태변경 모달 ── -->
-<div class="modal-overlay" id="modal-lead-detail">
-  <div class="modal modal-lg">
-    <div class="modal-header">
-      <h3>소개 리드 관리</h3>
-      <button class="modal-close" onclick="closeModal('modal-lead-detail')">✕</button>
-    </div>
-    <div class="modal-body" id="lead-detail-body"></div>
-    <div class="modal-footer" id="lead-detail-footer"></div>
-  </div>
-</div>
-
-<script src="js/auth.js"></script>
+<script src="js/app-utils.js"></script>
 <script>
   let currentUser = null;
   let myItems = [];
@@ -308,331 +6,66 @@
   let editingItem = null;
 
   async function init() {
-    currentUser = requireLogin(['supplier']);
-    if (!currentUser) return;
+    const auth = window.appAuth || {};
+    const profile = auth.profile || {};
+    const user = auth.user || {};
 
-    document.getElementById('sidebar-name').textContent = currentUser.name;
-    document.getElementById('sidebar-company').textContent = currentUser.company || '';
-
-    await Promise.all([loadItems(), loadLeads()]);
-    renderDashboard();
-  }
-
-  async function loadItems() {
-    const data = await apiGet('items', { limit: 100 });
-    myItems = (data.data || []).filter(i => i.supplier_id === currentUser.id);
-  }
-
-  async function loadLeads() {
-    const data = await apiGet('referrals', { limit: 100 });
-    myLeads = (data.data || []).filter(r => r.supplier_id === currentUser.id);
-  }
-
-  function renderDashboard() {
-    const contracted = myLeads.filter(r => r.status === 'contracted');
-    const revenue = contracted.reduce((s, r) => s + (Number(r.contract_amount) || 0), 0);
-    const newLeads = myLeads.filter(r => r.status === 'submitted');
-
-    document.getElementById('stat-items').textContent = myItems.length;
-    document.getElementById('stat-leads').textContent = myLeads.length;
-    document.getElementById('stat-contracted').textContent = contracted.length;
-    document.getElementById('stat-revenue').textContent = formatMoney(revenue);
-
-    if (newLeads.length > 0) {
-      document.getElementById('new-leads-banner').style.display = 'flex';
-      document.getElementById('new-leads-text').innerHTML =
-        `<strong>새로운 소개 리드 ${newLeads.length}건</strong>이 수신되었습니다. 빠른 연락으로 기회를 잡으세요!`;
-    }
-
-    const recent = [...myLeads].sort((a, b) => b.created_at - a.created_at).slice(0, 5);
-    const tbody = document.getElementById('recent-leads-body');
-    if (recent.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📋</div><p>아직 수신된 소개 리드가 없습니다</p><p style="font-size:12px;margin-top:8px;">아이템을 등록하면 커넥터들이 소개 요청을 보내드립니다</p></div></td></tr>`;
-      return;
-    }
-    tbody.innerHTML = recent.map(r => `
-      <tr>
-        <td><strong>${r.item_title || '-'}</strong></td>
-        <td>${r.lead_company || '-'}</td>
-        <td>${r.connector_name || '-'}</td>
-        <td>${formatDate(r.created_at)}</td>
-        <td>${statusBadge(r.status)}</td>
-        <td><button class="btn btn-outline btn-sm" onclick="showLeadDetail('${r.id}')">관리</button></td>
-      </tr>
-    `).join('');
-  }
-
-  function renderItems() {
-    const tbody = document.getElementById('items-body');
-    if (myItems.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📦</div><p>등록된 아이템이 없습니다</p><button class="btn btn-primary" onclick="openItemModal(null)">첫 아이템 등록하기</button></div></td></tr>`;
-      return;
-    }
-    tbody.innerHTML = myItems.map(item => `
-      <tr>
-        <td><strong>${item.title}</strong></td>
-        <td><span class="badge badge-blue">${item.category || '-'}</span></td>
-        <td style="color:#4F46E5;font-weight:700;">
-          ${item.reward_amount > 0 ? formatMoney(item.reward_amount) + ' (정액)' : (item.reward_rate || 0) + '%'}
-        </td>
-        <td>${item.contract_avg || '-'}</td>
-        <td>${statusBadge(item.status)}</td>
-        <td>${(item.view_count || 0).toLocaleString()}</td>
-        <td style="display:flex;gap:6px;">
-          <button class="btn btn-outline btn-sm" onclick="openItemModal('${item.id}')">수정</button>
-          <button class="btn btn-secondary btn-sm" onclick="toggleItemStatus('${item.id}', '${item.status}')">
-            ${item.status === 'active' ? '비활성화' : '활성화'}
-          </button>
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  function renderLeads(filtered) {
-    const list = filtered || myLeads;
-    const sorted = [...list].sort((a, b) => b.created_at - a.created_at);
-    const tbody = document.getElementById('all-leads-body');
-    if (sorted.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📋</div><p>소개 리드가 없습니다</p></div></td></tr>`;
-      return;
-    }
-    tbody.innerHTML = sorted.map(r => `
-      <tr>
-        <td><strong>${r.item_title || '-'}</strong></td>
-        <td>${r.lead_company || '-'}</td>
-        <td>${r.lead_contact_name || '-'}</td>
-        <td>${r.lead_contact_phone || '-'}</td>
-        <td>${r.connector_name || '-'}</td>
-        <td>${formatDate(r.created_at)}</td>
-        <td>${statusBadge(r.status)}</td>
-        <td>${r.contract_amount ? formatMoney(r.contract_amount) : '-'}</td>
-        <td><button class="btn btn-outline btn-sm" onclick="showLeadDetail('${r.id}')">관리</button></td>
-      </tr>
-    `).join('');
-  }
-
-  function filterLeads() {
-    const q = document.getElementById('lead-search').value.toLowerCase();
-    const st = document.getElementById('lead-status-filter').value;
-    const filtered = myLeads.filter(r => {
-      const matchQ = !q || (r.item_title || '').toLowerCase().includes(q) || (r.lead_company || '').toLowerCase().includes(q);
-      const matchSt = !st || r.status === st;
-      return matchQ && matchSt;
-    });
-    renderLeads(filtered);
-  }
-
-  function showTab(tab) {
-    ['dashboard', 'my-items', 'leads'].forEach(t => {
-      document.getElementById(`tab-${t}`).style.display = 'none';
-    });
-    document.getElementById(`tab-${tab}`).style.display = 'block';
-    const titles = { dashboard: '대시보드', 'my-items': '내 아이템 목록', leads: '소개 리드 현황' };
-    document.getElementById('page-title').textContent = titles[tab] || '';
-    if (tab === 'my-items') renderItems();
-    if (tab === 'leads') renderLeads();
-  }
-
-  // 아이템 모달
-  function openItemModal(itemId) {
-    editingItem = itemId ? myItems.find(i => i.id === itemId) : null;
-    document.getElementById('item-modal-title').textContent = editingItem ? '📦 아이템 수정' : '📦 아이템 등록';
-    document.getElementById('edit-item-id').value = editingItem ? editingItem.id : '';
-    document.getElementById('item-title').value = editingItem?.title || '';
-    document.getElementById('item-category').value = editingItem?.category || '';
-    document.getElementById('item-contract-avg').value = editingItem?.contract_avg || '';
-    document.getElementById('item-target').value = editingItem?.target_customer || '';
-    document.getElementById('item-pain').value = editingItem?.pain_point || '';
-    document.getElementById('item-desc').value = editingItem?.description || '';
-    document.getElementById('item-contact-person').value = editingItem?.contact_person || '';
-    document.getElementById('item-contact-phone').value = editingItem?.contact_phone || '';
-    document.getElementById('item-tags').value = editingItem?.tags ? editingItem.tags.join(', ') : '';
-
-    if (editingItem?.reward_amount > 0) {
-      document.getElementById('item-reward-type').value = 'amount';
-      document.getElementById('item-reward-amount').value = editingItem.reward_amount;
-      document.getElementById('item-reward-rate').value = '';
-    } else {
-      document.getElementById('item-reward-type').value = 'rate';
-      document.getElementById('item-reward-rate').value = editingItem?.reward_rate || '';
-      document.getElementById('item-reward-amount').value = '';
-    }
-    toggleRewardType();
-    openModal('modal-item');
-  }
-
-  function toggleRewardType() {
-    const type = document.getElementById('item-reward-type').value;
-    document.getElementById('reward-rate-group').style.display = type === 'rate' ? 'block' : 'none';
-    document.getElementById('reward-amount-group').style.display = type === 'amount' ? 'block' : 'none';
-  }
-
-  async function saveItem() {
-    const title = document.getElementById('item-title').value.trim();
-    const category = document.getElementById('item-category').value;
-    const target = document.getElementById('item-target').value.trim();
-    const pain = document.getElementById('item-pain').value.trim();
-    const desc = document.getElementById('item-desc').value.trim();
-
-    if (!title || !category || !target || !pain || !desc) {
-      showToast('필수 항목을 모두 입력해주세요', 'error'); return;
-    }
-
-    const rewardType = document.getElementById('item-reward-type').value;
-    const rewardRate = rewardType === 'rate' ? Number(document.getElementById('item-reward-rate').value) : 0;
-    const rewardAmount = rewardType === 'amount' ? Number(document.getElementById('item-reward-amount').value) : 0;
-    const tagsRaw = document.getElementById('item-tags').value;
-    const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
-
-    const payload = {
-      supplier_id: currentUser.id,
-      supplier_name: currentUser.company || currentUser.name,
-      title,
-      category,
-      description: desc,
-      target_customer: target,
-      pain_point: pain,
-      reward_rate: rewardRate,
-      reward_amount: rewardAmount,
-      contract_avg: document.getElementById('item-contract-avg').value.trim(),
-      contact_person: document.getElementById('item-contact-person').value.trim(),
-      contact_phone: document.getElementById('item-contact-phone').value.trim(),
-      tags,
-      status: 'active',
-      view_count: editingItem?.view_count || 0
+    currentUser = {
+      id: user.id || null,
+      email: user.email || '',
+      name: profile.full_name || user.email || '공급사',
+      company_name: profile.company_name || '',
+      role: profile.role || 'supplier'
     };
 
-    const btn = document.getElementById('save-item-btn');
-    btn.disabled = true; btn.textContent = '저장 중...';
+    const sidebarName = document.getElementById('sidebar-name');
+    const sidebarCompany = document.getElementById('sidebar-company');
 
-    try {
-      const editId = document.getElementById('edit-item-id').value;
-      if (editId) {
-        await apiPatch('items', editId, payload);
-        showToast('아이템이 수정되었습니다');
-      } else {
-        await apiPost('items', payload);
-        showToast('아이템이 등록되었습니다 🎉');
-      }
-      closeModal('modal-item');
-      await loadItems();
+    if (sidebarName) sidebarName.textContent = currentUser.name;
+    if (sidebarCompany) sidebarCompany.textContent = currentUser.company_name || '';
+
+    await Promise.all([
+      loadMyItems(),
+      loadMyLeads()
+    ]);
+
+    if (typeof renderDashboard === 'function') {
       renderDashboard();
-      if (document.getElementById('tab-my-items').style.display !== 'none') renderItems();
-    } catch {
-      showToast('저장 중 오류가 발생했습니다', 'error');
-    } finally {
-      btn.disabled = false; btn.textContent = '저장하기';
     }
   }
 
-  async function toggleItemStatus(itemId, currentStatus) {
-    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-    await apiPatch('items', itemId, { status: newStatus });
-    showToast(`아이템이 ${newStatus === 'active' ? '활성화' : '비활성화'}되었습니다`);
-    await loadItems();
-    renderItems();
-  }
+  /*
+    아래부터 있는 기존 함수들은 그대로 유지하세요.
+    예:
+    - loadMyItems
+    - loadMyLeads
+    - renderDashboard
+    - renderItems
+    - renderLeads
+    - openItemModal
+    - saveItem
+    - editItem
+    - toggleItemStatus
+    - showTab
+    - filterItems
+    - filterLeads
+    - 기타 공급사 관리용 함수들
 
-  function showLeadDetail(id) {
-    const r = myLeads.find(x => x.id === id);
-    if (!r) return;
+    단, 함수 내부에 아래 코드가 남아 있으면 제거하세요:
+    - requireLogin(...)
+    - Session.get()
+    - redirectByRole(...)
+    - logout()
+    - window.location.href = 'login.html'
+  */
 
-    const statusOptions = [
-      { v: 'submitted', l: '접수됨' },
-      { v: 'contact_requested', l: '연락 요청' },
-      { v: 'meeting_scheduled', l: '미팅 예정' },
-      { v: 'proposal_sent', l: '제안 발송' },
-      { v: 'contracted', l: '계약 완료' },
-      { v: 'failed', l: '불발' }
-    ];
-
-    document.getElementById('lead-detail-body').innerHTML = `
-      <div style="display:grid;gap:12px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <strong style="font-size:16px;">${r.item_title || '-'}</strong>
-          ${statusBadge(r.status)}
-        </div>
-        <hr class="divider">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
-          <div><span style="color:#9CA3AF;">고객사</span><br><strong>${r.lead_company || '-'}</strong></div>
-          <div><span style="color:#9CA3AF;">담당자</span><br><strong>${r.lead_contact_name || '-'}</strong></div>
-          <div><span style="color:#9CA3AF;">연락처</span><br><strong style="color:#4F46E5;">${r.lead_contact_phone || '-'}</strong></div>
-          <div><span style="color:#9CA3AF;">동의 여부</span><br><strong>${r.consent_confirmed ? '✅ 연락 동의 완료' : '❌ 미확인'}</strong></div>
-          <div><span style="color:#9CA3AF;">소개 커넥터</span><br><strong>${r.connector_name || '-'}</strong></div>
-          <div><span style="color:#9CA3AF;">수신일</span><br><strong>${formatDate(r.created_at)}</strong></div>
-        </div>
-        <div style="background:#F9FAFB;border-radius:8px;padding:12px;font-size:13px;">
-          <div style="font-weight:700;margin-bottom:6px;color:#374151;">💬 고객 상황</div>
-          <div style="color:#4B5563;line-height:1.6;">${r.lead_situation || '-'}</div>
-        </div>
-
-        <hr class="divider">
-        <div>
-          <label class="form-label">진행 상태 업데이트</label>
-          <select class="form-select" id="lead-status-update" style="margin-bottom:8px;">
-            ${statusOptions.map(o => `<option value="${o.v}" ${r.status === o.v ? 'selected' : ''}>${o.l}</option>`).join('')}
-          </select>
-
-          <div id="contract-section" style="${r.status === 'contracted' ? '' : 'display:none'}">
-            <label class="form-label">계약금액 (원)</label>
-            <input type="number" class="form-input" id="contract-amount-input" value="${r.contract_amount || ''}" placeholder="예: 5000000" style="margin-bottom:8px;">
-          </div>
-
-          <label class="form-label">영업 메모</label>
-          <textarea class="form-textarea" id="supplier-memo-input" rows="3" placeholder="영업 진행 상황, 특이사항 등을 메모하세요">${r.supplier_memo || ''}</textarea>
-        </div>
-      </div>
-    `;
-
-    document.getElementById('lead-status-update').addEventListener('change', (e) => {
-      document.getElementById('contract-section').style.display =
-        e.target.value === 'contracted' ? 'block' : 'none';
+  function boot() {
+    init().catch((e) => {
+      console.error('supplier dashboard init error:', e);
     });
-
-    document.getElementById('lead-detail-footer').innerHTML = `
-      <button class="btn btn-secondary" onclick="closeModal('modal-lead-detail')">닫기</button>
-      <button class="btn btn-primary" onclick="updateLeadStatus('${r.id}')">상태 저장</button>
-    `;
-
-    openModal('modal-lead-detail');
   }
 
-  async function updateLeadStatus(id) {
-    const status = document.getElementById('lead-status-update').value;
-    const memo = document.getElementById('supplier-memo-input').value;
-    const contractAmount = status === 'contracted' ? Number(document.getElementById('contract-amount-input').value) || 0 : undefined;
-
-    // 파트너 보상 자동 계산
-    const lead = myLeads.find(r => r.id === id);
-    const item = myItems.find(i => i.id === lead?.item_id);
-    let rewardAmount = lead?.reward_amount || 0;
-    if (status === 'contracted' && contractAmount && item) {
-      if (item.reward_amount > 0) {
-        rewardAmount = item.reward_amount;
-      } else if (item.reward_rate > 0) {
-        rewardAmount = Math.round(contractAmount * item.reward_rate / 100);
-      }
-    }
-
-    const patch = { status, supplier_memo: memo };
-    if (contractAmount !== undefined) patch.contract_amount = contractAmount;
-    if (status === 'contracted') patch.reward_amount = rewardAmount;
-
-    try {
-      await apiPatch('referrals', id, patch);
-      showToast('상태가 업데이트되었습니다');
-      closeModal('modal-lead-detail');
-      await loadLeads();
-      renderDashboard();
-      if (document.getElementById('tab-leads').style.display !== 'none') renderLeads();
-    } catch {
-      showToast('저장 중 오류가 발생했습니다', 'error');
-    }
-  }
-
-  init();
+  window.addEventListener('app-auth-ready', boot, { once: true });
+  if (window.appAuth) boot();
 </script>
-  <script type="module" src="./js/auth-guard.js"></script>
-  <button data-logout>로그아웃</button>
-</body>
-</html>
+<script type="module" src="./js/auth-guard.js"></script>
